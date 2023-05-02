@@ -1,0 +1,34 @@
+name: 'edge-computing-actions'
+description: 'This action was created to help deploy an edge application at Azion.'
+inputs:
+  applicationName:
+    description: 'Application Name'
+    required: true
+  azionPersonalToken:
+    description: 'Azion Personal Token'
+    required: true
+  commitConfig:
+    description: 'Commit config azion'
+    required: false
+    default: true
+  functionFilePath:
+    description: 'Path function file ex: ./worker/function.js'
+    required: false
+    default: './worker/function.js'
+  argsFilePath:
+    description: 'Path args file ex: ./args.json'
+    required: false
+    default: './args.json'
+
+outputs:
+  message:
+    description: 'message deploy'
+  domainApp:
+    description: 'Return your domain app'  
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
+branding:
+  icon: cloud-lightning
+  color: orange
