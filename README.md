@@ -1,32 +1,30 @@
 # Edge Computing Actions
 
-This action was created to help deploy an edge application at Azion RTM.
+This action was created to help deploy an edge application at Azion.
 To use it, you need to create an account at [Azion](https://manager.azion.com/signup/) and use configuration files.
-
-In this action, the Azion [CLI](https://www.azion.com/en/documentation/products/cli/overview/) is used to perform the deploy.
 
 There is an example template in this repository:
 
-- [Example](https://github.com/aziontech/edge-upstash-geolocation)
+- [Azion Templates](https://github.com/aziontech/azion-samples/tree/dev/templates)
 
 ## Example usage
+
+In this example below using the template [Angular Boilerplate](https://github.com/aziontech/azion-samples/tree/dev/templates/angular-boilerplate)
 
 ```yml
 - name: edge-computing-actions
   id: azion_edge
-  uses: aziontech/edge-computing-actions@v1.0.0
+  uses: aziontech/edge-computing-actions@v0.0.1
   with:
-    applicationName: "my-edge"
     azionPersonalToken: ${{ secrets.AZION_PERSONAL_TOKEN }}
-    commitConfig: true
-    functionFilePath: './worker/function.js'
-    argsFilePath: './args.json'
+    functionArgsFilePath: "args.json"
+    buildPreset: "angular"
+    buildMode: "deliver"
 
 - name: Get the output Azion Edge Deploy
   run: |
-    echo "Message-: ${{ steps.azion_edge.outputs.message }}"
-    echo "Domain-: ${{ steps.azion_edge.outputs.domainApp }}"
-
+    echo "Application ID-= ${{ steps.azion_edge.outputs.applicationId }}"
+    echo "Domain-= ${{ steps.azion_edge.outputs.domainUrl }}"
 ```
 
 ## Inputs
@@ -45,40 +43,83 @@ Personal token created in RTM Azion.
 
 **Required**
 
-### `commitConfig`
+### `functionArgsFilePath`
 
-default: false
+default: `args.json`
 
-Boolean to commit the settings for a new deploy.
-Settings: domain id, edge application id, function id.
-
-**Optional**
-
-> **Note**: if your branch is protected this setting needs to be manually saved in your repo.
-
-### `functionFilePath`
-
-default: `./worker/function.js`
-
-your function's file path
-
-**Optional**
-
-### `argsFilePath`
-
-default: `./args.json`
-
-file path of your arguments.
+function file path of your arguments.
 Indicated to be generated in your build.
+
+> **Note**: no commit this file.
+
+**Optional**
+
+### `buildPreset`
+
+Build preset by Vulcan ex: angular
+
+```bash
+
+  azioncli edge_applications ls
+
+  PRESET      MODE     
+  Html        Deliver  
+  Javascript  Compute  
+  Typescript  Compute  
+  Angular     Deliver  
+  Astro       Deliver  
+  Hexo        Deliver  
+  Next        Deliver  
+  React       Deliver  
+  Vue         Deliver 
+
+```
+
+**Required**
+
+
+### `buildMode`
+
+Build mode by Vulcan e.g: deliver
+
+```bash
+
+  azioncli edge_applications ls
+
+  PRESET      MODE     
+  Html        Deliver  
+  Javascript  Compute  
+  Typescript  Compute  
+  Angular     Deliver  
+  Astro       Deliver  
+  Hexo        Deliver  
+  Next        Deliver  
+  React       Deliver  
+  Vue         Deliver 
+
+```
+
+**Required**
+
+### `buildEntry`
+
+If mode compute (default: ./main.js)
+
+**Optional**
+
+
+### `edgeModuleAcceleration`
+
+Enable module acceleration [Application Acceleration](https://www.azion.com/en/documentation/products/edge-application/application-acceleration/)
 
 **Optional**
 
 ## Outputs
 
-### `message`
+### `applicationId`
 
-Deploy message.
+Edge Application ID
 
-### `domainApp`
+### `domainUrl`
 
-Url domain of your application
+Edge Application Domain

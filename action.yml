@@ -1,33 +1,41 @@
-name: 'edge-computing-actions'
-description: 'This action was created to help deploy an edge application at Azion.'
+name: "edge-computing-actions"
+description: "This action was created to help deploy an edge application at Azion."
 inputs:
   applicationName:
-    description: 'Application Name'
-    required: true
+    description: "Application Name"
+    required: false
   azionPersonalToken:
-    description: 'Azion Personal Token'
+    description: "Azion Personal Token"
     required: true
-  commitConfig:
-    description: 'Commit config azion'
+  functionArgsFilePath:
+    description: "Path function args file ex: args.json" # no commit this file
     required: false
-    default: true
-  functionFilePath:
-    description: 'Path function file ex: ./worker/function.js'
+    default: "args.json"
+  buildPreset:
+    description: "build Preset"
+    required: true
+  buildMode:
+    description: "build Mode"
     required: false
-    default: './worker/function.js'
-  argsFilePath:
-    description: 'Path args file ex: ./args.json'
+    default: "deliver"
+  buildEntry:
+    description: "build Entry - if buildMode compute"
     required: false
-    default: './args.json'
+    default: "./main.js"
+  edgeModuleAcceleration:
+    description: "enable module acceleration"
+    required: false
+    default: false  
 
 outputs:
-  message:
-    description: 'message deploy'
-  domainApp:
-    description: 'Return your domain app'  
+  applicationId:
+    description: "Return application id"
+  domainUrl:
+    description: "Return edge domain url"  
+
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: "node20"
+  main: 'dist/index.js'
 
 branding:
   icon: cloud-lightning
