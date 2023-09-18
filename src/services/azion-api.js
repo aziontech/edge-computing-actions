@@ -162,7 +162,8 @@ const updateRuleEngineFunction = async (
   const { results: resultGetRuleEngine } = resultsGetRuleEngine || {};
 
   const [defaultRule] = resultGetRuleEngine;
-
+  const idRule = defaultRule?.id;
+  delete defaultRule?.id; // remove id
   const postData = {
     ...defaultRule,
     behaviors: [
@@ -175,7 +176,7 @@ const updateRuleEngineFunction = async (
 
   return requestApi(
     baseurl,
-    `/edge_applications/${applicationId}/rules_engine/request/rules/${defaultRule.id}`,
+    `/edge_applications/${applicationId}/rules_engine/request/rules/${idRule}`,
     "PATCH",
     postData,
     null,
