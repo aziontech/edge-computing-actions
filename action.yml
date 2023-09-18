@@ -1,5 +1,5 @@
-name: "edge-computing-actions"
-description: "This action was created to help deploy an edge application at Azion."
+name: "Azion Action Deploy"
+description: "This GitHub Action automates the deployment of edge applications on Azion's platform while also synchronizing updates and configurations made via Git with the Real-Time Manager (RTM) in a safer and faster way"
 inputs:
   applicationName:
     description: "Application Name"
@@ -25,17 +25,17 @@ inputs:
   edgeModuleAcceleration:
     description: "enable module acceleration"
     required: false
-    default: false  
+    default: false
 
 outputs:
   applicationId:
     description: "Return application id"
   domainUrl:
-    description: "Return edge domain url"  
+    description: "Return edge domain url"
 
 runs:
   using: "node20"
-  main: 'dist/index.js'
+  main: "dist/index.js"
 
 branding:
   icon: cloud-lightning
