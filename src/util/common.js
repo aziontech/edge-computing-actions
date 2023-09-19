@@ -2,9 +2,10 @@ import * as util from "node:util";
 import * as child from "node:child_process";
 import { existsSync } from "node:fs";
 const exec = util.promisify(child.exec);
-import { writeFile, readFile as _readFile } from "fs/promises";
+import { writeFile, readFile as _readFile, stat } from "fs/promises";
 import { logInfo } from "./logger.js";
 import { messages } from "./message-log.js";
+import { join } from "node:path";
 
 /**
  * Extract and verify github url
@@ -196,6 +197,21 @@ const removeCharactersAndSpaces = (text) => {
   return textNormalize;
 };
 
+/**
+ * Check folder exists in project
+ * @param {string} folder - Folder e.g node_modules
+ * @returns {Promise<boolean>}
+ */
+async function folderExistsInProject(folder) {
+  const filePath = join(process.cwd(), folder);
+  try {
+    const stats = await stat(filePath);
+    return Promise.resolve(stats.isDirectory());
+  } catch (error) {
+    return Promise.resolve(false);
+  }
+}
+
 export {
   extractGitHubRepoPath,
   execCommandWithPath,
@@ -209,4 +225,5 @@ export {
   makeOutput,
   existFolder,
   removeCharactersAndSpaces,
+  folderExistsInProject,
 };

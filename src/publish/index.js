@@ -1,5 +1,5 @@
 import * as apiAzion from "../services/azion-api.js";
-import { commitAutomation, execSpawn, generateUUID, parseJsonFile, readFile } from "../util/common.js";
+import { commitAutomation, execSpawn, folderExistsInProject, generateUUID, parseJsonFile, readFile } from "../util/common.js";
 import * as dotenv from "dotenv";
 import { messages } from "../util/message-log.js";
 
@@ -17,6 +17,7 @@ import { messages } from "../util/message-log.js";
  * @param {string} sourceCode.buildPreset
  * @param {string} sourceCode.buildMode
  * @param {object} sourceCode.info
+ * @param {string} sourceCode.buildStaticFolder
  * @param {string} VULCAN_COMMAND
  * @returns {Promise}
  */
@@ -59,7 +60,8 @@ const publishOrUpdate = async (url, token, modules, sourceCode, VULCAN_COMMAND) 
   }
 
   // sync storage
-  if (sourceCode?.buildMode === "deliver") {
+  const staticExists = await folderExistsInProject(sourceCode?.buildStaticFolder);
+  if (staticExists) {
     const AZION_ENV_VALUE = "production";
     messages.deployUpdate.await("storage files");
     await execSpawn(sourceCode.path, `AZION_ENV=${AZION_ENV_VALUE} DEBUG=true ${VULCAN_COMMAND} auth --token ${token}`);

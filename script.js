@@ -27,7 +27,7 @@ const { GITHUB_WORKSPACE, GITHUB_REPOSITORY } = process.env;
  * constants
  */
 const BASE_URL_AZION_API = "api-origin.azionapi.net";
-const VULCAN_COMMAND = "npx --yes edge-functions@1.6.0";
+const VULCAN_COMMAND = "npx --yes edge-functions@1.7.0";
 
 /**
  * main function where you run the script
@@ -72,28 +72,24 @@ const main = async () => {
     buildCmd = `${VULCAN_COMMAND} build --preset ${INPUT_BUILDPRESET} --mode ${BUILD_MODE_VALID} --entry ${entry}`;
   }
   await execSpawn(sourceCodePath, buildCmd);
-  const staticFolder = INPUT_BUILDSTATICFOLDER ? `${sourceCodePath}/${INPUT_BUILDSTATICFOLDER}` : `${sourceCodePath}/.edge/storage`
-  await existFolder(staticFolder).catch(async (err) => {
-    const msg = `folder ${staticFolder} not exist, problem on build`
-    throw new Error(msg)
-  });
   messages.build.complete("building code");
-
+  
   // publish
   messages.deploy.title("DEPLOY ON EDGE");
   const workerFunctionPath = `${sourceCodePath}/.edge/worker.js`;
   const workerArgsPath = `${INPUT_FUNCTIONARGSFILEPATH}`;
   const versionBuildPath = `${sourceCodePath}/.edge/.env`;
-
+  
   // create args to function
   const ARGS_FUNCTION = await readFile(`${sourceCodePath}/${workerArgsPath}`).catch((err) => messages.prebuild.info("Fail load args file"));
   const ARGS_FUNCTION_VALID = ARGS_FUNCTION || "{}";
   await writeFileJSON(`${sourceCodePath}/${workerArgsPath}`, parseJsonFile(ARGS_FUNCTION_VALID));
-
+  
   // enable modules
   const EDGE_MODULE_ACCELERATION_VALID = !!INPUT_EDGEMODULEACCELERATION;
-
+  
   // publish or update
+  const staticFolder = INPUT_BUILDSTATICFOLDER ? `${sourceCodePath}/${INPUT_BUILDSTATICFOLDER}` : `${sourceCodePath}/.edge/storage`
   const inputSourceCode = {
     path: sourceCodePath,
     configPath: azionConfigPath,
@@ -103,6 +99,7 @@ const main = async () => {
     info: { application: { name: APPLICATION_NAME_VALID } },
     buildPreset: INPUT_BUILDPRESET,
     buildMode: INPUT_BUILDMODE,
+    buildStaticFolder: staticFolder,
   };
 
   const resultPublish = await publishOrUpdate(
