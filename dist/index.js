@@ -4948,11 +4948,14 @@ const messages = {
 
 
 
+;// CONCATENATED MODULE: external "node:path"
+const external_node_path_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:path");
 ;// CONCATENATED MODULE: ./src/util/common.js
 
 
 
 const exec = external_node_util_namespaceObject.promisify(external_node_child_process_namespaceObject.exec);
+
 
 
 
@@ -5146,6 +5149,21 @@ const removeCharactersAndSpaces = (text) => {
   textNormalize = textNormalize.slice(-1) === "-" ? textNormalize.slice(0, -1) : textNormalize; // remove last "-"
   return textNormalize;
 };
+
+/**
+ * Check folder exists in project
+ * @param {string} folder - Folder e.g node_modules
+ * @returns {Promise<boolean>}
+ */
+async function folderExistsInProject(folder) {
+  const filePath = (0,external_node_path_namespaceObject.join)(process.cwd(), folder);
+  try {
+    const stats = await (0,promises_namespaceObject.stat)(filePath);
+    return Promise.resolve(stats.isDirectory());
+  } catch (error) {
+    return Promise.resolve(false);
+  }
+}
 
 
 
@@ -5590,6 +5608,7 @@ var main = __nccwpck_require__(437);
  * @param {string} sourceCode.buildPreset
  * @param {string} sourceCode.buildMode
  * @param {object} sourceCode.info
+ * @param {string} sourceCode.buildStaticFolder
  * @param {string} VULCAN_COMMAND
  * @returns {Promise}
  */
@@ -5631,7 +5650,8 @@ const publishOrUpdate = async (url, token, modules, sourceCode, VULCAN_COMMAND) 
   }
 
   // sync storage
-  if (sourceCode?.buildMode === "deliver") {
+  const staticExists = await folderExistsInProject(sourceCode?.buildStaticFolder);
+  if (staticExists) {
     const AZION_ENV_VALUE = "production";
     messages.deployUpdate["await"]("storage files");
     await execSpawn(sourceCode.path, `AZION_ENV=${AZION_ENV_VALUE} DEBUG=true ${VULCAN_COMMAND} auth --token ${token}`);
@@ -5811,7 +5831,7 @@ const { GITHUB_WORKSPACE, GITHUB_REPOSITORY } = process.env;
  * constants
  */
 const BASE_URL_AZION_API = "api-origin.azionapi.net";
-const VULCAN_COMMAND = "npx --yes edge-functions@1.6.0";
+const VULCAN_COMMAND = "npx --yes edge-functions@1.7.0";
 
 /**
  * main function where you run the script
@@ -5856,28 +5876,24 @@ const script_main = async () => {
     buildCmd = `${VULCAN_COMMAND} build --preset ${INPUT_BUILDPRESET} --mode ${BUILD_MODE_VALID} --entry ${entry}`;
   }
   await execSpawn(sourceCodePath, buildCmd);
-  const staticFolder = INPUT_BUILDSTATICFOLDER ? `${sourceCodePath}/${INPUT_BUILDSTATICFOLDER}` : `${sourceCodePath}/.edge/storage`
-  await existFolder(staticFolder).catch(async (err) => {
-    const msg = `folder ${staticFolder} not exist, problem on build`
-    throw new Error(msg)
-  });
   messages.build.complete("building code");
-
+  
   // publish
   messages.deploy.title("DEPLOY ON EDGE");
   const workerFunctionPath = `${sourceCodePath}/.edge/worker.js`;
   const workerArgsPath = `${INPUT_FUNCTIONARGSFILEPATH}`;
   const versionBuildPath = `${sourceCodePath}/.edge/.env`;
-
+  
   // create args to function
   const ARGS_FUNCTION = await readFile(`${sourceCodePath}/${workerArgsPath}`).catch((err) => messages.prebuild.info("Fail load args file"));
   const ARGS_FUNCTION_VALID = ARGS_FUNCTION || "{}";
   await writeFileJSON(`${sourceCodePath}/${workerArgsPath}`, parseJsonFile(ARGS_FUNCTION_VALID));
-
+  
   // enable modules
   const EDGE_MODULE_ACCELERATION_VALID = !!INPUT_EDGEMODULEACCELERATION;
-
+  
   // publish or update
+  const staticFolder = INPUT_BUILDSTATICFOLDER ? `${sourceCodePath}/${INPUT_BUILDSTATICFOLDER}` : `${sourceCodePath}/.edge/storage`
   const inputSourceCode = {
     path: sourceCodePath,
     configPath: azionConfigPath,
@@ -5887,6 +5903,7 @@ const script_main = async () => {
     info: { application: { name: APPLICATION_NAME_VALID } },
     buildPreset: INPUT_BUILDPRESET,
     buildMode: INPUT_BUILDMODE,
+    buildStaticFolder: staticFolder,
   };
 
   const resultPublish = await publishOrUpdate(
