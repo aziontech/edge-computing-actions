@@ -5156,9 +5156,8 @@ const removeCharactersAndSpaces = (text) => {
  * @returns {Promise<boolean>}
  */
 async function folderExistsInProject(folder) {
-  const filePath = (0,external_node_path_namespaceObject.join)(process.cwd(), folder);
   try {
-    const stats = await (0,promises_namespaceObject.stat)(filePath);
+    const stats = await (0,promises_namespaceObject.stat)(folder);
     return Promise.resolve(stats.isDirectory());
   } catch (error) {
     return Promise.resolve(false);
