@@ -1,5 +1,5 @@
 name: "Azion Action Deploy"
-description: "This GitHub Action automates the deployment of edge applications on Azion's platform while also synchronizing updates and configurations made via Git with the Real-Time Manager (RTM) in a safer and faster way"
+description: "This GitHub Action automates the deployment of edge applications on Azion's platform."
 inputs:
   applicationName:
     description: "Application Name"
