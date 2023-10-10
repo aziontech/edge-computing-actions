@@ -5739,7 +5739,7 @@ const publishEdgeApplication = async (url, token, config, functionCode, function
 
   const results = {
     name: uniqueApplicationName,
-    env: process?.env?._ENVIRONMENT || "production",
+    env: process?.env?.INPUT_SCRIPTENV || "production",
     application: {
       id: resultEdgeApplication?.id,
       name: resultEdgeApplication?.name,
