@@ -26,6 +26,10 @@ inputs:
     description: "enable module acceleration"
     required: false
     default: false
+  scriptEnv:
+    description: "script environment (stage | production)"
+    required: false
+    default: "production"  
 
 outputs:
   applicationId:

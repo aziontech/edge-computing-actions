@@ -12,9 +12,9 @@ There is an example template in this repository:
 In this example below using the template [Angular Boilerplate](https://github.com/aziontech/azion-samples/tree/dev/templates/angular-boilerplate)
 
 ```yml
-- name: edge-computing-actions
+- name: Azion Action Deploy
   id: azion_edge
-  uses: aziontech/edge-computing-actions@v0.0.1
+  uses: aziontech/edge-computing-actions@v0
   with:
     azionPersonalToken: ${{ secrets.AZION_PERSONAL_TOKEN }}
     functionArgsFilePath: "args.json"
@@ -60,8 +60,6 @@ Build preset by Vulcan ex: angular
 
 ```bash
 
-  azioncli edge_applications ls
-
   PRESET      MODE     
   Html        Deliver  
   Javascript  Compute  
@@ -83,8 +81,6 @@ Build preset by Vulcan ex: angular
 Build mode by Vulcan e.g: deliver
 
 ```bash
-
-  azioncli edge_applications ls
 
   PRESET      MODE     
   Html        Deliver  
@@ -111,6 +107,14 @@ If mode compute (default: ./main.js)
 ### `edgeModuleAcceleration`
 
 Enable module acceleration [Application Acceleration](https://www.azion.com/en/documentation/products/edge-application/application-acceleration/)
+
+**Optional**
+
+### `scriptEnv`
+
+default: `production`
+
+Input to the RTM deployment environment
 
 **Optional**
 

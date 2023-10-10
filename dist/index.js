@@ -5651,11 +5651,12 @@ const publishOrUpdate = async (url, token, modules, sourceCode, VULCAN_COMMAND) 
   // sync storage
   const staticExists = await folderExistsInProject(sourceCode?.buildStaticFolder);
   if (staticExists) {
-    const AZION_ENV_VALUE = "production";
-    messages.deployUpdate["await"]("storage files");
+    const AZION_ENV_VALUE = process?.env?.INPUT_SCRIPTENV || "production";
+    messages.deployStorage.info(`storage files in ${AZION_ENV_VALUE}`);
+    messages.deployStorage["await"]("storage files");
     await execSpawn(sourceCode.path, `AZION_ENV=${AZION_ENV_VALUE} DEBUG=true ${VULCAN_COMMAND} auth --token ${token}`);
     await execSpawn(sourceCode.path, `AZION_ENV=${AZION_ENV_VALUE} DEBUG=true ${VULCAN_COMMAND} storage sync`);
-    messages.deployUpdate.success("storage files");
+    messages.deployStorage.success("storage files");
   }
 
   // change config
@@ -5821,6 +5822,7 @@ const {
   INPUT_BUILDENTRY,
   INPUT_BUILDSTATICFOLDER,
   INPUT_EDGEMODULEACCELERATION,
+  INPUT_SCRIPTENV,
 } = process.env;
 
 // ENV GITHUB
@@ -5829,8 +5831,13 @@ const { GITHUB_WORKSPACE, GITHUB_REPOSITORY } = process.env;
 /**
  * constants
  */
-const BASE_URL_AZION_API = "api-origin.azionapi.net";
-const VULCAN_COMMAND = "npx --yes edge-functions@1.7.0";
+const BASE_URL_AZION_API = INPUT_SCRIPTENV === "stage" ? "stage-api-origin.azion.net" : "api-origin.azionapi.net";
+const VULCAN_COMMAND = "npx --yes edge-functions@v1.7.1";
+const FUNCTION_WORK_PATH_DEFAULT = ".edge/worker.js";
+const BUILD_ENTRY_DEFAULT = (INPUT_BUILDPRESET?.toLocaleLowerCase() === "typescript") ? "./main.ts" : "./main.js";
+const STORAGE_PATH_DEFAULT = ".edge/storage";
+const VERSION_ENV_PATH_DEFAULT = ".edge/.env";
+
 
 /**
  * main function where you run the script
@@ -5842,7 +5849,12 @@ const script_main = async () => {
   messages.textOnly("Build and Deploy applications on the Edge with Azion");
   messages.textOnly(`Preset · ${INPUT_BUILDPRESET}`);
 
-  let APPLICATION_NAME_VALID = removeCharactersAndSpaces(INPUT_APPLICATIONNAME || '');
+  // check script env
+  if(!["production", "stage"].includes(INPUT_SCRIPTENV)){
+    throw new Error('Invalid environment. Please set ENV to either production or stage.')
+  }
+
+  let APPLICATION_NAME_VALID = removeCharactersAndSpaces(INPUT_APPLICATIONNAME || "");
 
   if (!INPUT_APPLICATIONNAME) {
     const [_, REPO_NAME] = GITHUB_REPOSITORY?.split("/");
@@ -5871,28 +5883,28 @@ const script_main = async () => {
   const BUILD_MODE_VALID = INPUT_BUILDMODE || "deliver";
   let buildCmd = `${VULCAN_COMMAND} build --preset ${INPUT_BUILDPRESET} --mode ${BUILD_MODE_VALID}`;
   if (BUILD_MODE_VALID === "compute") {
-    const entry = `${INPUT_BUILDENTRY || "./main.js"}`;
+    const entry = `${INPUT_BUILDENTRY || BUILD_ENTRY_DEFAULT}`;
     buildCmd = `${VULCAN_COMMAND} build --preset ${INPUT_BUILDPRESET} --mode ${BUILD_MODE_VALID} --entry ${entry}`;
   }
   await execSpawn(sourceCodePath, buildCmd);
   messages.build.complete("building code");
-  
+
   // publish
   messages.deploy.title("DEPLOY ON EDGE");
-  const workerFunctionPath = `${sourceCodePath}/.edge/worker.js`;
+  const workerFunctionPath = `${sourceCodePath}/${FUNCTION_WORK_PATH_DEFAULT}`;
   const workerArgsPath = `${INPUT_FUNCTIONARGSFILEPATH}`;
-  const versionBuildPath = `${sourceCodePath}/.edge/.env`;
-  
+  const versionBuildPath = `${sourceCodePath}/${VERSION_ENV_PATH_DEFAULT}`;
+
   // create args to function
   const ARGS_FUNCTION = await readFile(`${sourceCodePath}/${workerArgsPath}`).catch((err) => messages.prebuild.info("Fail load args file"));
   const ARGS_FUNCTION_VALID = ARGS_FUNCTION || "{}";
   await writeFileJSON(`${sourceCodePath}/${workerArgsPath}`, parseJsonFile(ARGS_FUNCTION_VALID));
-  
+
   // enable modules
   const EDGE_MODULE_ACCELERATION_VALID = !!INPUT_EDGEMODULEACCELERATION;
-  
+
   // publish or update
-  const staticFolder = INPUT_BUILDSTATICFOLDER ? `${sourceCodePath}/${INPUT_BUILDSTATICFOLDER}` : `${sourceCodePath}/.edge/storage`
+  const staticFolder = INPUT_BUILDSTATICFOLDER ? `${sourceCodePath}/${INPUT_BUILDSTATICFOLDER}` : `${sourceCodePath}/${STORAGE_PATH_DEFAULT}`;
   const inputSourceCode = {
     path: sourceCodePath,
     configPath: azionConfigPath,

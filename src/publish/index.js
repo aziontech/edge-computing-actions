@@ -62,11 +62,12 @@ const publishOrUpdate = async (url, token, modules, sourceCode, VULCAN_COMMAND) 
   // sync storage
   const staticExists = await folderExistsInProject(sourceCode?.buildStaticFolder);
   if (staticExists) {
-    const AZION_ENV_VALUE = "production";
-    messages.deployUpdate.await("storage files");
+    const AZION_ENV_VALUE = process?.env?.INPUT_SCRIPTENV || "production";
+    messages.deployStorage.info(`storage files in ${AZION_ENV_VALUE}`);
+    messages.deployStorage.await("storage files");
     await execSpawn(sourceCode.path, `AZION_ENV=${AZION_ENV_VALUE} DEBUG=true ${VULCAN_COMMAND} auth --token ${token}`);
     await execSpawn(sourceCode.path, `AZION_ENV=${AZION_ENV_VALUE} DEBUG=true ${VULCAN_COMMAND} storage sync`);
-    messages.deployUpdate.success("storage files");
+    messages.deployStorage.success("storage files");
   }
 
   // change config
@@ -149,7 +150,7 @@ const publishEdgeApplication = async (url, token, config, functionCode, function
 
   const results = {
     name: uniqueApplicationName,
-    env: process?.env?._ENVIRONMENT || "production",
+    env: process?.env?.INPUT_SCRIPTENV || "production",
     application: {
       id: resultEdgeApplication?.id,
       name: resultEdgeApplication?.name,
